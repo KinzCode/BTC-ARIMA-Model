@@ -11,14 +11,34 @@ import pandas as  pd
 
 
 def get_new_prices(historical_data):
-    max_date = pd.to_datetime(historical_data['Date']).max()
+    """
+    Parameters
+    ----------
+    historical_data : DF
+        Df read from csv containing all the historical prices by day.
+
+    Returns
+    -------
+    None: - Finds the days discrepency between csv file and data on api and
+    uses get_historical prices and appends the new data to existing_csv
+
+    """
+    
+    # need try statement as if csv is open with excel it re orders the dates
+    try:
+        historical_data['Date'] = pd.to_datetime(historical_data['Date'], format = '%Y/%m/%d')
+    except ValueError:
+        historical_data['Date'] = pd.to_datetime(historical_data['Date'], format = '%d/%m/%Y')
+    #
+    max_date = historical_data['Date'].max()
     today_date = pd.to_datetime("today")
     date_difference = (today_date - max_date).days
-    print(max_date, today_date, date_difference)
-    chosen_currency = historical_data['Currency'][0]
+    if date_difference > 0:
+        chosen_currency = historical_data['Currency'][0]
+        get_historical_prices(chosen_currency, date_difference, False)
+    else:
+        return
     
-    #get_historical_prices(chosen_currency, date_difference, False)
-    return
 
 
 def get_historical_prices(chosen_currency, num_days, first_parse):
@@ -46,7 +66,6 @@ def get_historical_prices(chosen_currency, num_days, first_parse):
     data['Currency'] = chosen_currency
     
     if first_parse is False:
-        print("and here")
         data.to_csv(f'../dat/{chosen_currency}_daily_historical.csv', mode='a', header=False, index = False)
     else:
         data.to_csv(f'../dat/{chosen_currency}_daily_historical.csv', index = False)
