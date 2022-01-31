@@ -66,16 +66,16 @@ def get_historical_prices(chosen_currency, num_days, first_parse):
     data['Currency'] = chosen_currency
     
     if first_parse is False:
-        data.to_csv(f'../dat/{chosen_currency}_daily_historical.csv', mode='a', header=False, index = False)
+        data.to_csv(f'../dat/raw/{chosen_currency}_daily_historical.csv', mode='a', header=False, index = False)
     else:
-        data.to_csv(f'../dat/{chosen_currency}_daily_historical.csv', index = False)
+        data.to_csv(f'../dat/raw/{chosen_currency}_daily_historical.csv', index = False)
 
 
 if __name__ == '__main__':
     # adjust desired currency here
     chosen_currency = 'bitcoin'
     try:
-        historical_data = pd.read_csv(f'../dat/{chosen_currency}_daily_historical.csv')
+        historical_data = pd.read_csv(f'../dat/raw/{chosen_currency}_daily_historical.csv')
     except FileNotFoundError:
         historical_data  = pd.DataFrame()
     
