@@ -44,8 +44,12 @@ def clean(df):
     return df
 
 if __name__ == '__main__':
+    # enter selected currency
     selected_currency = 'bitcoin'
-    df = pd.read_csv(f'../dat/{selected_currency}_daily_historical.csv')
+    df = pd.read_csv(f'../dat/raw/{selected_currency}_daily_historical.csv')
     
     # clean data
     df = clean(df)
+    
+    # save to csv
+    df.to_csv(f'../dat/clean/cleaned_{selected_currency}_daily_historical.csv', index = False)
