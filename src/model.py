@@ -10,8 +10,8 @@ import json
 import pmdarima as pm
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
-
-
+import numpy as np
+import datetime
 
 def model(df, p_d_q):
     """
@@ -28,30 +28,34 @@ def model(df, p_d_q):
 
     """
     
-    df_length = len(df)
-    train_length = df_length - 31
-
-    train = df[:train_length]
-    test = df[train_length:]
-    
+    time_series = np.log(df)
     # fit
-    model = sm.tsa.arima.ARIMA(train, order = p_d_q)
+    model = sm.tsa.arima.ARIMA(time_series, order = p_d_q)
     fitted = model.fit()
 
     
-    fc = fitted.get_forecast(32) 
+    fc = fitted.get_forecast(7) 
+    #Set confidence to 95% 
     fc = (fc.summary_frame(alpha=0.05))
+    #Get mean forecast
     fc_mean = fc['mean']
+    #Get lower confidence forecast
     fc_lower = fc['mean_ci_lower']
+    #Get upper confidence forecast
     fc_upper = fc['mean_ci_upper'] 
-
-    # Plot
-    plt.figure(figsize=(12,5), dpi=100)
-    plt.plot(test, label='actual')
-    plt.plot(fc_mean, label='mean_forecast', linewidth = 1.5)
-    plt.plot(fc_lower, label = 'mean_ci_lower')
-    plt.plot(fc_upper, label = 'mean_ci_upper')
-    plt.title('Forecast vs Actuals')
+    #Set figure size
+    plt.figure(figsize=(12,8), dpi=100)
+    #Plot last 50 price movements
+    plt.plot(orig_df['Date'][-50:],orig_df['Price(USD)'][-50:], label='BTC Price')
+    # create date axis for predictions
+    future_7_days =  [str(datetime.datetime.today() + datetime.timedelta(days=x)) for x in range(7)]
+    #Plot mean forecas
+    plt.plot(future_7_days, np.exp(fc_mean), label='mean_forecast', linewidth = 1.5)
+    #Create confidence interval
+    plt.fill_between(future_7_days, np.exp(fc_lower),np.exp(fc_upper), color='b', alpha=.1, label = '95% Confidence')
+    #Set title
+    plt.title('Bitcoin 7 Day Forecast')
+    #Set legend
     plt.legend(loc='upper left', fontsize=8)
     plt.show()
 
@@ -61,7 +65,10 @@ if __name__ == '__main__':
     selected_currency = 'bitcoin'
     #import data
     df = pd.read_csv(f'../dat/clean/cleaned_{selected_currency}_daily_historical.csv')
+    # copy df
+    orig_df = df.copy()
     df = df['Price(USD)']
+    
     #import auto arima p,q,q
     with open('auto_p_d_q.json', 'r') as fp:
         auto_p_d_q = json.load(fp)
